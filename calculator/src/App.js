@@ -19,7 +19,11 @@ function App() {
 
   const [amount, setAmount] = useState('');
 
-  const [alert, setAlert] = useState({show:false})
+  const [alert, setAlert] = useState({show:false});
+
+  const [edit, setEdit] = useState(false);
+
+  const [id, setId] = useState(0);
 
   const handleCharge = e => {
     setCharge(e.target.value);
@@ -34,18 +38,48 @@ function App() {
     setTimeout(()=>{setAlert({show:false})}, 3000);
   }
 
+
   const handleSubmit = e => {
     e.preventDefault();
     if(charge !== '' && amount > 0){
+    if(edit){
+      let tempExpenses = expenses.map(item => {
+        return item.id === id?{...item,charge,amount} :item
+      });
+      setExpenses(tempExpenses);
+      setEdit(false);
+      handleAlert({type:'success', text:'item edited'});
+    }else{
       const singleExpense = {id: uuidv4(), charge, amount}
       setExpenses([...expenses,singleExpense]);
       handleAlert({type:'success', text:'item added'});
+
+    }
       setCharge("");
       setAmount("");
     }else{
       handleAlert({type:'danger', text:'no empty values'});
     }
   }
+
+  const clearItems = () =>{
+    setExpenses([]);
+  };
+
+  const handleDelete = (id) =>{
+    let tempExpenses = expenses.filter(item=>item.id !=id);
+    handleAlert({type:'danger', text:'item deleted'});
+    setExpenses(tempExpenses);
+  };
+
+  const handleEdit = (id) =>{
+    let expense = expenses.find(item => item.id ===id);
+    let {charge, amount} = expense;
+    setCharge(charge);
+    setAmount(amount);
+    setEdit(true);
+    setId(id);
+  };
 
   return (
     <>
@@ -58,8 +92,15 @@ function App() {
         amount={amount}
         handleAmount={handleAmount}
         handleCharge={handleCharge}
-        handleSubmit={handleSubmit}/>
-      <ExpenseList expenses={expenses}/>
+        handleSubmit={handleSubmit}
+        edit={edit}
+        />
+      <ExpenseList 
+        expenses={expenses}
+        handleDelete={handleDelete}
+        handleEdit={handleEdit}
+        clearItems={clearItems}
+        />
       </main>
       <h1>
         total spending: <span className='total'>
